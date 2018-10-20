@@ -1,6 +1,8 @@
 import librosa
 import numpy as np 
-#import mathplotlib.pyplot as plt 
+#import mathplotlib.pyplot as plt
+import pickle 
+import torch
 import os
 import re
 
@@ -25,7 +27,10 @@ def process(file_path,direc,destination_path,phase_bool):
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
 		if not os.path.exists(destination_path):
 			os.makedirs(destination_path)
-		np.save(os.path.join(destination_path,(index[0] +"_" + str(start) +'_m.npy')),mag)
+		print(mag.shape)
+		print(torch.from_numpy(np.expand_dims(mag,axis=2)).shape)
+		# magnitude stored as tensor, phase as np array
+		pickle.dump(torch.from_numpy(np.expand_dims(mag,axis=2)),open(os.path.join(destination_path,(index[0] +"_" + str(start) +'_m.pt')),'wb'))
 		if phase_bool:
 			if not os.path.exists(phase_path):
 				os.makedirs(phase_path)

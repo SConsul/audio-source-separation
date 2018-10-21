@@ -40,7 +40,9 @@ f2=1
 N1=50
 N2=30
 NN=128
-
+alpha = 0.001
+beta = 0.01
+beta_vocals = 0.03
 batch_size = 30
 num_epochs = 30
 
@@ -54,7 +56,7 @@ class MixedSquaredError(nn.Module):
         L_othervocals = np.sum(np.square(pred_vocals - pred_others))
         L_diff = np.sum(np.square(pred_base-pred_vocals)) + np.square(np.square(pred_base-pred_drums)) + np.sum(np.square(pred_vocals-pred_drums))
 
-        return = L_sq - 0.001*L_diff - 0.01*L_other - 0.03*L_othervocals
+        return = L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
 
 class TimeFreqMasking(nn.Module):
     def __init__(self):

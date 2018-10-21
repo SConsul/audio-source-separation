@@ -68,7 +68,7 @@ class TimeFreqMasking(nn.Module):
 
         return base,vocals,drums,others
 
-train_set = SourceSepTrain(transforms = transformations_train)
+train_set = SourceSepTrain(transforms = None)
 
 def train():
     cuda = torch.cuda.is_available()
@@ -82,7 +82,7 @@ def train():
     print("preparing training data ...")
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     print("done ...")
-    val_set = SourceSepVal(transforms = transformations_val)
+    val_set = SourceSepVal(transforms = None)
     val_loader = DataLoader(val_set, batch_size=batch_size,shuffle=False)
 
     for epoch in range(num_epochs):

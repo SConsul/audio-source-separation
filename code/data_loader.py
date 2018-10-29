@@ -1,6 +1,6 @@
 from torch.utils.data.dataset import Dataset
 from torchvision import transforms
-from skimage import io, transform
+#from skimage import io, transform
 import os
 import numpy as np
 import re

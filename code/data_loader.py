@@ -1,4 +1,5 @@
 from torch.utils.data.dataset import Dataset
+import torch
 from torchvision import transforms
 #from skimage import io, transform
 import os
@@ -31,7 +32,7 @@ class SourceSepTrain(Dataset):
         return len(self.list) # length of how much data you have
 
 
-class SourceSepTest(Dataset):
+class SourceSepVal(Dataset):
     def __init__(self, path='../Val/Mixtures'):
         # assuming this to be the directory containing all the magnitude spectrum 
         #for all songs and all segments used in training

@@ -50,10 +50,10 @@ class MixedSquaredError(nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(MixedSquaredError, self).__init__()
 
-    def forward(self, pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums,gt_others):
+    def forward(self, pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others):
         L_sq = np.sum(np.square(pred_bass-gt_bass)) + np.sum(np.square(pred_vocals-gt_vocals)) + np.sum(np.square(pred_drums-gt_drums))
-        L_other = np.sum(np.square(pred_bass-pred_others)) + np.sum(np.square(pred_drums-pred_others)) + np.sum(np.square(pred_vocals-pred_others))
-        L_othervocals = np.sum(np.square(pred_vocals - pred_others))
+        L_other = np.sum(np.square(pred_bass-gt_others)) + np.sum(np.square(pred_drums-gt_others)) + np.sum(np.square(pred_vocals-gt_others))
+        L_othervocals = np.sum(np.square(pred_vocals - gt_others))
         L_diff = np.sum(np.square(pred_bass-pred_vocals)) + np.square(np.square(pred_bass-pred_drums)) + np.sum(np.square(pred_vocals-pred_drums))
 
         return L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals

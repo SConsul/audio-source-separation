@@ -117,25 +117,29 @@ def train():
 
         val_loss = Average()
         net.eval()
-        for input, gt_bass,gt_drums,gt_vocals in tqdm(enumerate(train_loader)):
-            input = Variable(input)
+        for val_inp, gt_bass,gt_drums,gt_vocals,gt_others in tqdm(enumerate(val_loader)):
+            val_inp = Variable(val_inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
+            gt_others = Variable(gt_others)
             if cuda:
-                input = input.cuda()
+                val_inp = val_inp.cuda()
+                gt_bass = gt_bass.cuda()
                 gt_vocals = gt_vocals.cuda()
                 gt_drums = gt_drums.cuda()
+                gt_others = gt_others.cuda()
 
-            o_bass, o_vocals, o_drums, o_others = net(input)
+            o_bass, o_vocals, o_drums, o_others = net(val_inp)
             pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
             if (epoch)%10==0:
-                writer.add_image('Validation Input',input,epoch)
+                writer.add_image('Validation Input',val_inp,epoch)
                 writer.add_image('Validation Bass GT ',gt_bass,epoch)
                 writer.add_image('Validation Vocals GT ',gt_vocals,epoch)
                 writer.add_image('Validation Drums GT ',gt_drums,epoch)
-
-            vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums)
+                writer.add_image('Validation Other GT ',gt_others,epoch)
+                
+            vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others)
             writer.add_scalar('Validation loss',vloss,epoch)
             val_loss.update(vloss.item(), images.size(0))
 

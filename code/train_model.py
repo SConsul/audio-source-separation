@@ -56,7 +56,7 @@ class MixedSquaredError(nn.Module):
         L_othervocals = np.sum(np.square(pred_vocals - pred_others))
         L_diff = np.sum(np.square(pred_bass-pred_vocals)) + np.square(np.square(pred_bass-pred_drums)) + np.sum(np.square(pred_vocals-pred_drums))
 
-        return = L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
+        return L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
 
 class TimeFreqMasking(nn.Module):
     def __init__(self):
@@ -112,7 +112,7 @@ def train():
             optimizer.step()
             train_loss.update(loss.item(), images.size(0))
             for param_group in optimizer.param_groups:
-            writer.add_scalar('Learning Rate',param_group['lr'])
+                writer.add_scalar('Learning Rate',param_group['lr'])
 
         val_loss = Average()
         net.eval()
@@ -147,4 +147,4 @@ def test(model):
 
 
 if __name__ == "__main__":
-train()
+    train()

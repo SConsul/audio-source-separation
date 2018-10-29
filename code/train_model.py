@@ -40,7 +40,9 @@ f2=1
 N1=50
 N2=30
 NN=128
-
+alpha = 0.001
+beta = 0.01
+beta_vocals = 0.03
 batch_size = 30
 num_epochs = 30
 
@@ -48,27 +50,27 @@ class MixedSquaredError(nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(MixedSquaredError, self).__init__()
 
-    def forward(self, pred_base,pred_vocals,pred_drums,pred_others, gt_base,gt_vocals,gt_drums):
-        L_sq = np.sum(np.square(pred_base-gt_base)) + np.sum(np.square(pred_vocals-gt_vocals)) + np.sum(np.square(pred_drums-gt_drums))
-        L_other = np.sum(np.square(pred_base-pred_others)) + np.sum(np.square(pred_drums-pred_others)) + np.sum(np.square(pred_vocals-pred_others))
+    def forward(self, pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums):
+        L_sq = np.sum(np.square(pred_bass-gt_bass)) + np.sum(np.square(pred_vocals-gt_vocals)) + np.sum(np.square(pred_drums-gt_drums))
+        L_other = np.sum(np.square(pred_bass-pred_others)) + np.sum(np.square(pred_drums-pred_others)) + np.sum(np.square(pred_vocals-pred_others))
         L_othervocals = np.sum(np.square(pred_vocals - pred_others))
-        L_diff = np.sum(np.square(pred_base-pred_vocals)) + np.square(np.square(pred_base-pred_drums)) + np.sum(np.square(pred_vocals-pred_drums))
+        L_diff = np.sum(np.square(pred_bass-pred_vocals)) + np.square(np.square(pred_bass-pred_drums)) + np.sum(np.square(pred_vocals-pred_drums))
 
-        return = L_sq - 0.001*L_diff - 0.01*L_other - 0.03*L_othervocals
+        return = L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
 
 class TimeFreqMasking(nn.Module):
     def __init__(self):
         super(TimeFreqMasking, self).__init__()
-    def forward(self,base,vocals,drums,others):
-        den = np.absolute(base) + np.absolute(vocals) + np.absolute(drums) + np.absolute(others)
-        base = base/den
+    def forward(self,bass,vocals,drums,others):
+        den = np.absolute(bass) + np.absolute(vocals) + np.absolute(drums) + np.absolute(others)
+        bass = bass/den
         vocals = vocals/den
         drums = drums/den
         others = others/den
 
-        return base,vocals,drums,others
+        return bass,vocals,drums,others
 
-train_set = SourceSepTrain(transforms = transformations_train)
+train_set = SourceSepTrain(transforms = None)
 
 def train():
     cuda = torch.cuda.is_available()
@@ -82,58 +84,57 @@ def train():
     print("preparing training data ...")
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     print("done ...")
-    val_set = SourceSepVal(transforms = transformations_val)
+    val_set = SourceSepVal(transforms = None)
     val_loader = DataLoader(val_set, batch_size=batch_size,shuffle=False)
 
     for epoch in range(num_epochs):
         train_loss = Average()
 
         net.train()
-        for i, (input, gt_base,gt_drums,gt_vocals) in tqdm(enumerate(train_loader)):
+        for i, (input, gt_bass,gt_drums,gt_vocals) in tqdm(enumerate(train_loader)):
             input = Variable(input)
-            gt_base = Variable(gt_base)
+            gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
             if cuda:
                 input = input.cuda()
-                gt_base = gt_base.cuda()
+                gt_bass = gt_bass.cuda()
                 gt_vocals = gt_vocals.cuda()
                 gt_drums = gt_drums.cuda()
 
             optimizer.zero_grad()
-            o_base, o_vocals, o_drums, o_others = net(input)
-            pred_base,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_base, o_vocals, o_drums, o_others)
+            o_bass, o_vocals, o_drums, o_others = net(input)
+            pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
 
-            loss = criterion(pred_base,pred_vocals,pred_drums,pred_others, gt_base,gt_vocals,gt_drums)
+            loss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums)
             writer.add_scalar('Train Loss',loss,epoch)
             loss.backward()
             optimizer.step()
             train_loss.update(loss.item(), images.size(0))
             for param_group in optimizer.param_groups:
-	        writer.add_scalar('Learning Rate',param_group['lr'])
+            writer.add_scalar('Learning Rate',param_group['lr'])
 
         val_loss = Average()
         net.eval()
-        for input, gt_base,gt_drums,gt_vocals in tqdm(enumerate(train_loader)):
+        for input, gt_bass,gt_drums,gt_vocals in tqdm(enumerate(train_loader)):
             input = Variable(input)
-            gt_base = Variable(gt_base)
+            gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
             if cuda:
                 input = input.cuda()
-                gt_base = gt_base.cuda()
                 gt_vocals = gt_vocals.cuda()
                 gt_drums = gt_drums.cuda()
 
-            o_base, o_vocals, o_drums, o_others = net(input)
-            pred_base,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_base, o_vocals, o_drums, o_others)
+            o_bass, o_vocals, o_drums, o_others = net(input)
+            pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
             if (epoch)%10==0:
                 writer.add_image('Validation Input',input,epoch)
-                writer.add_image('Validation Base GT ',gt_base,epoch)
+                writer.add_image('Validation Bass GT ',gt_bass,epoch)
                 writer.add_image('Validation Vocals GT ',gt_vocals,epoch)
                 writer.add_image('Validation Drums GT ',gt_drums,epoch)
 
-            vloss = criterion(pred_base,pred_vocals,pred_drums,pred_others, gt_base,gt_vocals,gt_drums)
+            vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums)
             writer.add_scalar('Validation loss',vloss,epoch)
             val_loss.update(vloss.item(), images.size(0))
 
@@ -146,4 +147,4 @@ def test(model):
 
 
 if __name__ == "__main__":
-    train()
+train()

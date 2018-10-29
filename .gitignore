@@ -2,3 +2,8 @@ Project/
 DSD100subset/
 monoaural-audio-source.pdf
 Processed/
+Val/
+dsd100/
+code/runs/
+code/__pycache__/
+

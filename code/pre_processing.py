@@ -40,10 +40,11 @@ def process(file_path,direc,destination_path,phase_bool):
 		if not os.path.exists(destination_path):
 			os.makedirs(destination_path)
 		print(mag.shape)
-		print(torch.from_numpy(np.expand_dims(mag,axis=2)).shape)
+		print(torch.from_numpy(np.expand_dims(mag,axis=0)).shape)
+
 		# magnitude stored as tensor, phase as np array
 		#pickle.dump(torch.from_numpy(np.expand_dims(mag,axis=2)),open(os.path.join(destination_path,(index[0] +"_" + str(start) +'_m.pt')),'wb'))
-		torch.save(torch.from_numpy(np.expand_dims(mag,axis=2)),os.path.join(destination_path,(index[0] +"_" + str(start) +'_m.pt')))
+		torch.save(torch.from_numpy(np.expand_dims(mag,axis=0)),os.path.join(destination_path,(index[0] +"_" + str(start) +'_m.pt')))
 		if phase_bool:
 			if not os.path.exists(phase_path):
 				os.makedirs(phase_path)

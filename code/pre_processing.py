@@ -34,8 +34,8 @@ def process(file_path,direc,destination_path,phase_bool):
 	regex = re.compile(r'\d+')
 	index=regex.findall(direc)
 	#print(index)
-	for start in range(0,int(duration//20)):
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*20,duration =20)
+	for start in range(0,int(duration//2)):
+		wave_array, fs = librosa.load(file_path,sr=None,offset=start*2,duration =2)
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
 		if not os.path.exists(destination_path):
 			os.makedirs(destination_path)

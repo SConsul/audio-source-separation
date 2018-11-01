@@ -43,7 +43,7 @@ class SourceSepVal(Dataset):
         # stuff
         mixture_path = '../Val/Mixtures/'
         bass_path = '../Val/Bass/'
-        vocal_path = '../Val/Vocals/'
+        vocals_path = '../Val/Vocals/'
         drums_path = '../Val/Drums/'
         others_path = '../Val/Others/'
 
@@ -54,7 +54,7 @@ class SourceSepVal(Dataset):
         drums = torch.load(drums_path+self.list[index])
         others = torch.load(others_path+self.list[index])
 
-        return (mixture, bass, vocals, drums, others)
+        return (mixture,bass, vocals, drums, others)
 
     def __len__(self):
         return len(self.list)

@@ -10,6 +10,8 @@ from data_loader import *
 from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import MultiStepLR
 
+if not os.path.exists('Weights'):
+    os.makedirs('Weights')
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #--------------------------
 class Average(object):
@@ -32,9 +34,9 @@ class Average(object):
 writer = SummaryWriter()
 #----------------------------------------
 
-inp_size = [513,3446]
+inp_size = [513,345]
 t1=1
-f1=513
+f1=513#513
 t2=12
 f2=1
 N1=50
@@ -43,7 +45,7 @@ NN=128
 alpha = 0.001
 beta = 0.01
 beta_vocals = 0.03
-batch_size = 30
+batch_size = 8
 num_epochs = 30
 
 class MixedSquaredError(nn.Module):
@@ -51,24 +53,23 @@ class MixedSquaredError(nn.Module):
         super(MixedSquaredError, self).__init__()
 
     def forward(self, pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others):
-        L_sq = np.sum(np.square(pred_bass-gt_bass)) + np.sum(np.square(pred_vocals-gt_vocals)) + np.sum(np.square(pred_drums-gt_drums))
-        L_other = np.sum(np.square(pred_bass-gt_others)) + np.sum(np.square(pred_drums-gt_others)) + np.sum(np.square(pred_vocals-gt_others))
-        L_othervocals = np.sum(np.square(pred_vocals - gt_others))
-        L_diff = np.sum(np.square(pred_bass-pred_vocals)) + np.square(np.square(pred_bass-pred_drums)) + np.sum(np.square(pred_vocals-pred_drums))
+        
 
-        return L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
+        L_sq = torch.sum((pred_bass-gt_bass).pow(2)) + torch.sum((pred_vocals-gt_vocals).pow(2)) + torch.sum((pred_drums-gt_drums).pow(2))
+        L_other = torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2)) 
+        #+ torch.sum((pred_vocals-gt_others).pow(2))
+        L_othervocals = torch.sum((pred_vocals - gt_others).pow(2))
+        L_diff = torch.sum((pred_bass-pred_vocals).pow(2)) + torch.sum((pred_bass-pred_drums).pow(2)) + torch.sum((pred_vocals-pred_drums).pow(2))
 
-class TimeFreqMasking(nn.Module):
-    def __init__(self):
-        super(TimeFreqMasking, self).__init__()
-    def forward(self,bass,vocals,drums,others):
-        den = np.absolute(bass) + np.absolute(vocals) + np.absolute(drums) + np.absolute(others)
-        bass = bass/den
-        vocals = vocals/den
-        drums = drums/den
-        others = others/den
+        return L_sq- alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
 
-        return bass,vocals,drums,others
+def TimeFreqMasking(bass,vocals,drums,others):
+    den = torch.abs(bass) + torch.abs(vocals) + torch.abs(drums) + torch.abs(others)
+    bass = bass/den
+    vocals = vocals/den
+    drums = drums/den
+    others = others/den
+    return bass,vocals,drums,others
 
 train_set = SourceSepTrain()
 
@@ -92,6 +93,7 @@ def train():
 
         net.train()
         for i, (inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(train_loader)):
+            #print(inp.size())
             inp = Variable(inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
@@ -105,19 +107,20 @@ def train():
                 gt_others= gt_others.cuda()
             optimizer.zero_grad()
             o_bass, o_vocals, o_drums, o_others = net(inp)
+            
             pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
 
             loss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums,gt_others)
             writer.add_scalar('Train Loss',loss,epoch)
             loss.backward()
             optimizer.step()
-            train_loss.update(loss.item(), images.size(0))
+            train_loss.update(loss.item(), inp.size(0))
             for param_group in optimizer.param_groups:
                 writer.add_scalar('Learning Rate',param_group['lr'])
 
         val_loss = Average()
         net.eval()
-        for val_inp, gt_bass,gt_drums,gt_vocals,gt_others in tqdm(enumerate(val_loader)):
+        for i,(val_inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(val_loader)):
             val_inp = Variable(val_inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
@@ -141,10 +144,10 @@ def train():
                 
             vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others)
             writer.add_scalar('Validation loss',vloss,epoch)
-            val_loss.update(vloss.item(), images.size(0))
+            val_loss.update(vloss.item(), inp.size(0))
 
         print("Epoch {}, Training Loss: {}, Validation Loss: {}".format(epoch+1, train_loss.avg(), val_loss.avg()))
-        torch.save(net.state_dict(), 'Weights_{}_{}.pth.tar'.format(epoch+1, val_loss.avg()))
+        torch.save(net.state_dict(), 'Weights/Weights_{}_{}.pth.tar'.format(epoch+1, val_loss.avg()))
     return net
 
 def test(model):

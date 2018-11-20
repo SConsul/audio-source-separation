@@ -34,14 +34,14 @@ for test_songs in (test_songs_list):
     sound_output_path = os.path.join(vocals_path,test_songs)
     for segment in (vocals_list) :
         seg, sr = librosa.load(segment)
-        combined_song= np.append(combined_vocals,seg)
+        combined_vocals= np.append(combined_vocals,seg)
     librosa.output.write_wav(sound_output_path,combined_vocals,sr)
 
-
+    
     print('Stitching Bass')
     combined_bass=np.array([])
     sr=None
-    bass_list = sorted(glob.glob(os.path.join(vocals_directory,test_songs+"*")))
+    bass_list = sorted(glob.glob(os.path.join(bass_directory,test_songs+"*")))
     bass_path=os.path.join(destination_path,'bass')
     if not os.path.exists(bass_path):
         os.makedirs(bass_path)
@@ -55,7 +55,7 @@ for test_songs in (test_songs_list):
     print('Stitching Drums')
     combined_drums=np.array([])
     sr=None
-    drums_list = sorted(glob.glob(os.path.join(vocals_directory,test_songs+"*")))
+    drums_list = sorted(glob.glob(os.path.join(drums_directory,test_songs+"*")))
     drums_path=os.path.join(destination_path,'drums')
     if not os.path.exists(drums_path):
         os.makedirs(drums_path)
@@ -68,7 +68,7 @@ for test_songs in (test_songs_list):
     print('Stitching Others')
     combined_others=np.array([])
     sr=None
-    others_list = sorted(glob.glob(os.path.join(vocals_directory,test_songs+"*")))
+    others_list = sorted(glob.glob(os.path.join(others_directory,test_songs+"*")))
     others_path=os.path.join(destination_path,'others')
     if not os.path.exists(others_path):
         os.makedirs(others_path)

@@ -45,18 +45,19 @@ NN=128
 alpha = 0.001
 beta = 0.01
 beta_vocals = 0.03
-batch_size = 8
-num_epochs = 30
+batch_size = 10
+num_epochs = 80
+
 
 class MixedSquaredError(nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(MixedSquaredError, self).__init__()
 
     def forward(self, pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others):
-        
+
 
         L_sq = torch.sum((pred_bass-gt_bass).pow(2)) + torch.sum((pred_vocals-gt_vocals).pow(2)) + torch.sum((pred_drums-gt_drums).pow(2))
-        L_other = torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2)) 
+        L_other = torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2))
         #+ torch.sum((pred_vocals-gt_others).pow(2))
         L_othervocals = torch.sum((pred_vocals - gt_others).pow(2))
         L_diff = torch.sum((pred_bass-pred_vocals).pow(2)) + torch.sum((pred_bass-pred_drums).pow(2)) + torch.sum((pred_vocals-pred_drums).pow(2))
@@ -107,7 +108,7 @@ def train():
                 gt_others= gt_others.cuda()
             optimizer.zero_grad()
             o_bass, o_vocals, o_drums, o_others = net(inp)
-            
+
             pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
 
             loss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums,gt_others)
@@ -141,13 +142,13 @@ def train():
                 writer.add_image('Validation Vocals GT ',gt_vocals,epoch)
                 writer.add_image('Validation Drums GT ',gt_drums,epoch)
                 writer.add_image('Validation Other GT ',gt_others,epoch)
-                
+
             vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others)
             writer.add_scalar('Validation loss',vloss,epoch)
             val_loss.update(vloss.item(), inp.size(0))
 
         print("Epoch {}, Training Loss: {}, Validation Loss: {}".format(epoch+1, train_loss.avg(), val_loss.avg()))
-        torch.save(net.state_dict(), 'Weights/Weights_{}_{}.pth.tar'.format(epoch+1, val_loss.avg()))
+        torch.save(net.state_dict(), 'Weights/Weights_{}_{}.pth'.format(epoch+1, val_loss.avg()))
     return net
 
 def test(model):

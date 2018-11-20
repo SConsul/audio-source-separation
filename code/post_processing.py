@@ -6,44 +6,23 @@ import torch
 import os
 import re
 
-path= "../DSD100subset/"
-path_mixtures = path + "Mixtures/Dev/"
-path_sources = path + "Sources/Dev/"
-destination_path = "../Processed/Mixtures"
-phase_path= "../Processed/Phases"
-bass_path="../Processed/Bass"
-vocals_path="../Processed/Vocals"
-drums_path="../Processed/Drums"
-others_path="../Processed/Others"
-source_dest_paths=[vocals_path,bass_path,drums_path,others_path]
-
-path_val_mixtures = path + "Mixtures/Test/"
-path_val_sources = path + "Sources/Test/"
-validation_path = "../Val/Mixtures"
-val_phase_path= "../Val/Phases"
-val_bass_path="../Val/Bass"
-val_vocals_path="../Val/Vocals"
-val_drums_path="../Val/Drums"
-val_others_path="../Val/Others"
-source_val_paths=[val_vocals_path,val_bass_path,val_drums_path,val_others_path]
-
-
-def reconstruct(file_path,direc,destination_path,phase_bool):
+def reconstruct(phase, bass_mag, vocals_mag, drums_mag,others_mag,song_num,segment_num,destination_path):
 	# Retrieve complex STFT
-	vocals = torch.Tensor.numpy(vocals_mag) * phase
-	base = torch.Tensor.numpy(base_mag) * phase
-	drums = torch.Tensor.numpy(drums_mag) * phase
-	others = torch.Tensor.numpy(others_mag) * phase
+	vocals = np.squeeze(vocals_mag.detach().numpy() * phase,axis= [0,1])
+	#print(vocals.shape)
+	bass = np.squeeze(bass_mag.detach().numpy() * phase, axis=[0,1])
+	drums = np.squeeze(drums_mag.detach().numpy() * phase, axis=[0,1])
+	others = np.squeeze(others_mag.detach().numpy() * phase, axis=[0,1])
 
 	# Perform ISTFT
-	vocals_audio = librosa.istft(vocals, n_fft=1024,hop_length=256,window='hann',center='True')
-	base_audio = librosa.istft(base, n_fft=1024,hop_length=256,window='hann',center='True')
-	drums_audio = librosa.istft(drums, n_fft=1024,hop_length=256,window='hann',center='True')
-	others_audio = librosa.istft(others, n_fft=1024,hop_length=256,window='hann',center='True')
+	vocals_audio = librosa.istft(vocals, win_length=1024,hop_length=256,window='hann',center='True')
+	bass_audio = librosa.istft(bass, win_length=1024,hop_length=256,window='hann',center='True')
+	drums_audio = librosa.istft(drums, win_length=1024,hop_length=256,window='hann',center='True')
+	others_audio = librosa.istft(others, win_length=1024,hop_length=256,window='hann',center='True')
 
 	# Save as wav files
-	librosa.output.write_wav('', vocals_audio, 44100)
-	librosa.output.write_wav('', base_audio, 44100)
-	librosa.output.write_wav('', drums_audio, 44100)
-	librosa.output.write_wav('', others_audio, 44100)
+	librosa.output.write_wav(os.path.join(destination_path,'vocals',str(song_num)+'_'+str(segment_num)), vocals_audio, 44100)
+	librosa.output.write_wav(os.path.join(destination_path,'bass',str(song_num)+'_'+str(segment_num)), bass_audio, 44100)
+	librosa.output.write_wav(os.path.join(destination_path,'drums',str(song_num)+'_'+str(segment_num)), drums_audio, 44100)
+	librosa.output.write_wav(os.path.join(destination_path,'others',str(song_num)+'_'+str(segment_num)), others_audio, 44100)
 	return

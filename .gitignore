@@ -7,4 +7,7 @@ dsd100/
 code/runs/
 code/__pycache__/
 code/Weights
+AudioResults/
+Recovered_Songs/
+Test/
 

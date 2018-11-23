@@ -7,11 +7,12 @@ import numpy as np
 import re
 
 class SourceSepTrain(Dataset):
-    def __init__(self, path='../Processed/Mixtures'):
+    def __init__(self, path='../Processed/Mixtures', transforms=None):
     # assuming this to be the directory containing all the magnitude spectrum
     #for all songs and all segments used in training
         self.path = path
         self.list = os.listdir(self.path)
+        self.transforms = transforms
 
     def __getitem__(self, index):
         mixture_path = '../Processed/Mixtures/'
@@ -26,6 +27,12 @@ class SourceSepTrain(Dataset):
         drums = torch.load(drums_path+self.list[index])
         others = torch.load(others_path+self.list[index])
 
+        if self.transforms is not None:
+            mixture = self.transforms(mixture)
+            bass = self.transforms(bass)
+            vocals = self.transforms(vocals)
+            drums = self.transforms(drums)
+            others = self.transforms(others)
         return (mixture,bass, vocals, drums, others)
 
     def __len__(self):
@@ -33,11 +40,12 @@ class SourceSepTrain(Dataset):
 
 
 class SourceSepVal(Dataset):
-    def __init__(self, path='../Val/Mixtures'):
+    def __init__(self, path='../Val/Mixtures', transforms=None):
         # assuming this to be the directory containing all the magnitude spectrum
         #for all songs and all segments used in training
         self.path = path
         self.list = os.listdir(self.path)
+        self.transforms = transforms
 
     def __getitem__(self, index):
         # stuff
@@ -54,15 +62,23 @@ class SourceSepVal(Dataset):
         drums = torch.load(drums_path+self.list[index])
         others = torch.load(others_path+self.list[index])
 
+        if self.transforms is not None:
+            mixture = self.transforms(mixture)
+            bass = self.transforms(bass)
+            vocals = self.transforms(vocals)
+            drums = self.transforms(drums)
+            others = self.transforms(others)
+
         return (mixture,bass, vocals, drums, others)
 
     class SourceSepTest(Dataset):
-        def __init__(self, path='../Test/Mixtures'):
+        def __init__(self, path='../Test/Mixtures',transforms=None):
             # assuming this to be the directory containing all the magnitude spectrum
             #for all songs and all segments used in training
             self.path = path
             self.list = os.listdir(self.path)
-
+            self.transforms = transforms
+            
         def __getitem__(self, index):
             mixture_path = '../Test/Mixtures/'
             bass_path = '../Test/Bass/'
@@ -77,6 +93,13 @@ class SourceSepVal(Dataset):
             vocals = torch.load(vocals_path+self.list[index])
             drums = torch.load(drums_path+self.list[index])
             others = torch.load(others_path+self.list[index])
+
+            if self.transforms is not None:
+                mixture = self.transforms(mixture)
+                bass = self.transforms(bass)
+                vocals = self.transforms(vocals)
+                drums = self.transforms(drums)
+                others = self.transforms(others)
 
             return (mixture,phase, bass, vocals, drums, others)
 

@@ -53,10 +53,10 @@ class MixedSquaredError(nn.Module):
         super(MixedSquaredError, self).__init__()
 
     def forward(self, pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others):
-        
+
 
         L_sq = torch.sum((pred_bass-gt_bass).pow(2)) + torch.sum((pred_vocals-gt_vocals).pow(2)) + torch.sum((pred_drums-gt_drums).pow(2))
-        L_other = torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2)) 
+        L_other = torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2))
         #+ torch.sum((pred_vocals-gt_others).pow(2))
         L_othervocals = torch.sum((pred_vocals - gt_others).pow(2))
         L_diff = torch.sum((pred_bass-pred_vocals).pow(2)) + torch.sum((pred_bass-pred_drums).pow(2)) + torch.sum((pred_vocals-pred_drums).pow(2))
@@ -71,7 +71,12 @@ def TimeFreqMasking(bass,vocals,drums,others):
     others = others/den
     return bass,vocals,drums,others
 
-train_set = SourceSepTrain()
+train_set = SourceSepTrain(transforms = transformations_train)
+
+
+transformation_train = transforms.Compose([transforms.Normalize(mean = mu, std = std)])
+#transformation_test = transforms.Compose([ transforms.Normalize(mean = 0.0, std =1./var), transforms.Normalize(mean = -1*mu, std = 1.0),])
+
 
 def train():
     cuda = torch.cuda.is_available()
@@ -85,7 +90,7 @@ def train():
     print("preparing training data ...")
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     print("done ...")
-    val_set = SourceSepVal()
+    val_set = SourceSepVal(transforms = transformations_train)
     val_loader = DataLoader(val_set, batch_size=batch_size,shuffle=False)
 
     for epoch in range(num_epochs):
@@ -107,7 +112,7 @@ def train():
                 gt_others= gt_others.cuda()
             optimizer.zero_grad()
             o_bass, o_vocals, o_drums, o_others = net(inp)
-            
+
             pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
 
             loss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums,gt_others)
@@ -135,13 +140,15 @@ def train():
 
             o_bass, o_vocals, o_drums, o_others = net(val_inp)
             pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
+
+            pred_bass = std*pred_bass + mu;
             if (epoch)%10==0:
                 writer.add_image('Validation Input',val_inp,epoch)
                 writer.add_image('Validation Bass GT ',gt_bass,epoch)
                 writer.add_image('Validation Vocals GT ',gt_vocals,epoch)
                 writer.add_image('Validation Drums GT ',gt_drums,epoch)
                 writer.add_image('Validation Other GT ',gt_others,epoch)
-                
+
             vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others)
             writer.add_scalar('Validation loss',vloss,epoch)
             val_loss.update(vloss.item(), inp.size(0))

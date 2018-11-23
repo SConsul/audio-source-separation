@@ -78,7 +78,7 @@ class SourceSepVal(Dataset):
             self.path = path
             self.list = os.listdir(self.path)
             self.transforms = transforms
-            
+
         def __getitem__(self, index):
             mixture_path = '../Test/Mixtures/'
             bass_path = '../Test/Bass/'
@@ -87,12 +87,14 @@ class SourceSepVal(Dataset):
             others_path = '../Test/Others/'
             phase_path = '../Test/Phases/'
 
-            mixture = torch.load(mixture_path+self.list[index])
-            phase = torch.load(phase_path+self.list[index]+'_p')
-            bass = torch.load(bass_path+self.list[index])
-            vocals = torch.load(vocals_path+self.list[index])
-            drums = torch.load(drums_path+self.list[index])
-            others = torch.load(others_path+self.list[index])
+        phase_file=self.list[index].replace('_m','_p')
+        phase_file=phase_file.replace('.pt','.npy')
+        mixture = torch.load(mixture_path+self.list[index])
+        #phase = np.load(phase_path+phase_file)
+        bass = torch.load(bass_path+self.list[index])
+        vocals = torch.load(vocals_path+self.list[index])
+        drums = torch.load(drums_path+self.list[index])
+        others = torch.load(others_path+self.list[index])
 
             if self.transforms is not None:
                 mixture = self.transforms(mixture)

@@ -45,8 +45,9 @@ NN=128
 alpha = 0.001
 beta = 0.01
 beta_vocals = 0.03
-batch_size = 8
-num_epochs = 30
+batch_size = 10
+num_epochs = 80
+
 
 class MixedSquaredError(nn.Module):
     def __init__(self, weight=None, size_average=True):
@@ -154,7 +155,7 @@ def train():
             val_loss.update(vloss.item(), inp.size(0))
 
         print("Epoch {}, Training Loss: {}, Validation Loss: {}".format(epoch+1, train_loss.avg(), val_loss.avg()))
-        torch.save(net.state_dict(), 'Weights/Weights_{}_{}.pth.tar'.format(epoch+1, val_loss.avg()))
+        torch.save(net.state_dict(), 'Weights/Weights_{}_{}.pth'.format(epoch+1, val_loss.avg()))
     return net
 
 def test(model):

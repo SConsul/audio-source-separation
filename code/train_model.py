@@ -35,7 +35,7 @@ class Average(object):
 writer = SummaryWriter()
 #----------------------------------------
 
-inp_size = [513,52]
+inp_size = [513,862]
 t1=1
 f1=513#513
 t2=12
@@ -46,8 +46,8 @@ NN=128
 alpha = 0.001
 beta = 0.01
 beta_vocals = 0.03
-batch_size = 10
-num_epochs = 200
+batch_size = 15
+num_epochs = 250
 
 
 class MixedSquaredError(nn.Module):
@@ -90,9 +90,10 @@ def train():
         net = net.cuda()
         criterion = criterion.cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
-    scheduler = CyclicLinearLR(optimizer, milestones=[60,120])
+    #scheduler = CyclicLinearLR(optimizer, milestones=[60,120])
+    scheduler = MultiStepLR(optimizer, milestones=[60,120])
     print("preparing training data ...")
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     print("done ...")
     val_set = SourceSepVal(transforms = None)
     val_loader = DataLoader(val_set, batch_size=batch_size,shuffle=False)
@@ -102,7 +103,7 @@ def train():
         train_loss = Average()
 
         net.train()
-        for i, (inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(train_loader)):
+        for i, (inp, gt_bass,gt_vocals,gt_drums,gt_others) in enumerate(train_loader):
             inp = Variable(inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
@@ -134,7 +135,7 @@ def train():
 
         val_loss = Average()
         net.eval()
-        for i,(val_inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(val_loader)):
+        for i,(val_inp, gt_bass,gt_vocals,gt_drums,gt_others) in enumerate(val_loader):
             val_inp = Variable(val_inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)

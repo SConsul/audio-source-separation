@@ -3,12 +3,20 @@
 [data3, samp_freq3] = audioread('drums.wav');
 [data4, samp_freq4] = audioread('other.wav');
 
-snr = 1000;
-data1_noisy = awgn(data1, snr, 'measured');
-data2_noisy = awgn(data2, snr, 'measured');
-data3_noisy = awgn(data3, snr, 'measured');
-data4_noisy = awgn(data4, snr, 'measured');
+% take only num_points to compute power (ratio used)
+num_points = 100000;
+points_taken = floor(linspace(1, size(data1,1), num_points));
 
-se = [data1_noisy(1:500,1), data2_noisy(1:500,1), data3_noisy(1:500,1), data4_noisy(1:500,1)]';
-s = [data1(1:500,1), data2(1:500,1), data3(1:500,1), data4(1:500,1)]';
+%%%%%%% Replace this with your model o/p %%%%%%%%%%%%%
+snr = 0.5;
+data1_predicted = awgn(data1, snr, 'measured');
+data2_predicted = awgn(data2, snr, 'measured');
+data3_predicted = awgn(data3, snr, 'measured');
+data4_predicted = awgn(data4, snr, 'measured');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+se = [data1_predicted(points_taken,1), data2_predicted(points_taken,1), data3_predicted(points_taken,1), data4_predicted(points_taken,1)]';
+s = [data1(points_taken,1), data2(points_taken,1), data3(points_taken,1), data4(points_taken,1)]';
+
 [SDR,SIR,SAR,perm]=bss_eval_sources(se,s);

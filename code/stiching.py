@@ -4,7 +4,7 @@ import numpy as np
 import os
 import re
 import glob
-destination_path='../Recovered_Songs_same_genre/'
+destination_path='../Recovered_Songs_bigger/'
 vocals_directory='../AudioResults/vocals'
 drums_directory='../AudioResults/drums'
 bass_directory='../AudioResults/bass'

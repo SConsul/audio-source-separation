@@ -47,7 +47,7 @@ alpha = 0.001
 beta = 0.01
 beta_vocals = 0.15
 batch_size = 30
-num_epochs = 300
+num_epochs = 100
 
 
 class MixedSquaredError(nn.Module):
@@ -108,7 +108,7 @@ def train():
             std = torch.std(inp)
             inp_n = (inp-mean)/std
 
-            inp_n = Variable(inp_n)
+            inp_n = Variable(inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
@@ -140,11 +140,11 @@ def train():
         val_loss = Average()
         net.eval()
         for i,(val_inp, gt_bass,gt_vocals,gt_drums,gt_others) in enumerate(val_loader):
-            val_mean = torch.mean(val_inp)
-            val_std = torch.std(val_inp)
-            val_inp_n = (val_inp-val_mean)/val_std
+            #val_mean = torch.mean(val_inp)
+            #val_std = torch.std(val_inp)
+            #val_inp_n = (val_inp-val_mean)/val_std
 
-            val_inp_n = Variable(val_inp_n)
+            val_inp = Variable(val_inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
@@ -156,7 +156,7 @@ def train():
                 gt_drums = gt_drums.cuda()
                 gt_others = gt_others.cuda()
 
-            o_bass, o_vocals, o_drums, o_others = net(val_inp_n)
+            o_bass, o_vocals, o_drums, o_others = net(val_inp)
             mask_bass,mask_vocals,mask_drums,mask_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
             #print(val_inp.shape)
             #print(mask_drums.shape)
@@ -169,9 +169,13 @@ def train():
             if (epoch)%10==0:
                 writer.add_image('Validation Input',val_inp,epoch)
                 writer.add_image('Validation Bass GT ',gt_bass,epoch)
+                writer.add_image('Validation Bass Pred ',pred_bass,epoch)
                 writer.add_image('Validation Vocals GT ',gt_vocals,epoch)
+                writer.add_image('Validation Vocals Pred ',pred_vocals,epoch)
                 writer.add_image('Validation Drums GT ',gt_drums,epoch)
+                writer.add_image('Validation Drums Pred ',pred_drums,epoch)
                 writer.add_image('Validation Other GT ',gt_others,epoch)
+                writer.add_image('Validation Others Pred ',pred_others,epoch)
 
             vloss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums, gt_others)
             writer.add_scalar('Validation loss',vloss,epoch)

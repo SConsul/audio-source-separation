@@ -23,7 +23,7 @@ if __name__ == '__main__':
     beta = 0.01
     beta_vocals = 0.03
     batch_size = 1
-    num_epochs = 30
+    num_epochs = 100
 
     destination_path= '../AudioResults/'
     phase_path = '../Processed/Phases/'
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     net = SepConvNet(t1,f1,t2,f2,N1,N2,inp_size,NN)
     # net.load_state_dict(torch.load('Weights/Weights_200_3722932.6015625.pth')) #least score Weights so far
-    net.load_state_dict(torch.load('Weights/Weights_250_1268044.8148148148.pth'))
+    net.load_state_dict(torch.load('Weights/Weights_33_3631759.714285714.pth'))
     net.eval()
     test_set = SourceSepTest(transforms = None)
     test_loader = DataLoader(test_set, batch_size=batch_size,shuffle=False)

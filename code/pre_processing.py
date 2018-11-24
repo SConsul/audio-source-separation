@@ -47,11 +47,11 @@ def process(file_path,direc,destination_path,phase_bool,destination_phase_path):
 	index=regex.findall(direc)
 	#print(index)
 	num_segments=0
-	mean=np.zeros((513,862))
-	var=np.zeros((513,862))
-	for start in range(0,int(duration//5)):
+	#mean=np.zeros((513,52))
+	#var=np.zeros((513,52))
+	for start in range(0,int(duration//0.3)):
 
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*5,duration =5)
+		wave_array, fs = librosa.load(file_path,sr=None,offset=start*0.3,duration =0.3)
 
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
 		mean+=mag
@@ -68,25 +68,7 @@ def process(file_path,direc,destination_path,phase_bool,destination_phase_path):
 			if not os.path.exists(destination_phase_path):
 				os.makedirs(destination_phase_path)
 			np.save(os.path.join(destination_phase_path,(index[0]+"_" +str(start)+'_p.npy')),phase)
-	return  (mean, num_segments)
-def compute_var(mean,num_segments,file_path):
-	t1,t2=librosa.load(file_path,sr=None)
-	duration=librosa.get_duration(t1,t2)
-	# regex = re.compile(r'\d+')
-	# index=regex.findall(direc)
-	#print(index)
-	var=np.zeros((513,862))
-	for start in range(0,int(duration//5)):
-
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*5,duration =5)
-		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
-		#print(mag)
-		#print('################################')
-		#print(mag-mean)
-		var+=np.square(mag-mean)
-		#num_segments+=1;
-		return var
-
+	return
 
 #--------- training data-------------------------------------
 
@@ -96,23 +78,16 @@ for subdirs, dirs, files in os.walk(path_mixtures):
 		total_mean=0
 		total_num_segments=0
 		for s,d,f in os.walk(path_mixtures + direc):
-			(mean, num_segments)=process(os.path.join(path_mixtures,direc,f[0]),direc,destination_path,True,phase_path)
-			total_mean+= mean
-			total_num_segments+=num_segments
-		total_mean/= total_num_segments
+			process(os.path.join(path_mixtures,direc,f[0]),direc,destination_path,True,phase_path)
+			#total_mean+= mean
+			#total_num_segments+=num_segments
+		#total_mean/= total_num_segments
 
-		torch.save(torch.from_numpy(np.expand_dims(total_mean,axis=0)).float(),os.path.join(mean_var_path,'mean.pt'))
+		#torch.save(torch.from_numpy(np.expand_dims(total_mean,axis=0)).float(),os.path.join(mean_var_path,'mean.pt'))
 		# print(total_mean)		# print(total_mean)
 
 		# print('##################################################################')
-		for s,d,f in os.walk(path_mixtures + direc):
-			var=compute_var(total_mean,total_num_segments,os.path.join(path_mixtures,direc,f[0]))
-			total_var= var
-			#total_num_segments+=num_segments
-		total_var/= total_num_segments
-		total_std=np.sqrt(total_var)
-		torch.save(torch.from_numpy(np.expand_dims(total_std,axis=0)).float(),os.path.join(mean_var_path,'std.pt'))
-		# print(total_var)
+				# print(total_var)
 		# assert False
 for subdirs, dirs, files in os.walk(path_sources):
 	for direc in dirs:
@@ -120,7 +95,7 @@ for subdirs, dirs, files in os.walk(path_sources):
 		for s,d,file in os.walk(path_sources + direc):
 			for i in range(0,4):
 				print(file[i])
-				(mean, num_segments)=process(os.path.join(path_sources,direc,file[i]),direc,source_dest_paths[i],False,phase_path)
+				process(os.path.join(path_sources,direc,file[i]),direc,source_dest_paths[i],False,phase_path)
 
 
 
@@ -131,7 +106,7 @@ for subdirs, dirs, files in os.walk(path_val_mixtures):
 		print('working with validation '+ direc)
 		for s,d,f in os.walk(path_val_mixtures + direc):
 
-			(mean, num_segments)=process(os.path.join(path_val_mixtures,direc,f[0]),direc,validation_path,False,val_phase_path)
+			process(os.path.join(path_val_mixtures,direc,f[0]),direc,validation_path,False,val_phase_path)
 
 for subdirs, dirs, files in os.walk(path_val_sources):
 	for direc in dirs:
@@ -139,7 +114,7 @@ for subdirs, dirs, files in os.walk(path_val_sources):
 		for s,d,file in os.walk(path_val_sources + direc):
 			for i in range(0,4):
 				print(file[i])
-				(mean, num_segments)=process(os.path.join(path_val_sources,direc,file[i]),direc,source_val_paths[i],False,val_phase_path)
+				process(os.path.join(path_val_sources,direc,file[i]),direc,source_val_paths[i],False,val_phase_path)
 
 #----------------------Testing data-------------------------------------------
 
@@ -148,7 +123,7 @@ for subdirs, dirs, files in os.walk(path_test_mixtures):
 		print('working with validation '+ direc)
 		for s,d,f in os.walk(path_test_mixtures + direc):
 
-			(mean, num_segments)=process(os.path.join(path_test_mixtures,direc,f[0]),direc,testing_path,True,test_phase_path)
+			process(os.path.join(path_test_mixtures,direc,f[0]),direc,testing_path,True,test_phase_path)
 
 for subdirs, dirs, files in os.walk(path_test_sources):
 	for direc in dirs:
@@ -156,4 +131,4 @@ for subdirs, dirs, files in os.walk(path_test_sources):
 		for s,d,file in os.walk(path_test_sources + direc):
 			for i in range(0,4):
 				print(file[i])
-				(mean, num_segments)=process(os.path.join(path_test_sources,direc,file[i]),direc,source_test_paths[i],False,test_phase_path)
+				process(os.path.join(path_test_sources,direc,file[i]),direc,source_test_paths[i],False,test_phase_path)

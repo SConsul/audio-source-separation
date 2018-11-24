@@ -75,7 +75,7 @@ class SourceSepVal(Dataset):
         return len(self.list)
 
 class SourceSepTest(Dataset):
-    def __init__(self, path='../Processed/Mixtures',transforms=None):
+    def __init__(self, path='../Test/Mixtures',transforms=None):
         # assuming this to be the directory containing all the magnitude spectrum
         #for all songs and all segments used in training
         self.path = path
@@ -83,12 +83,12 @@ class SourceSepTest(Dataset):
         self.transforms = transforms
 
     def __getitem__(self, index):
-        mixture_path = '../Processed/Mixtures/'
-        bass_path = '../Processed/Bass/'
-        vocals_path = '../Processed/Vocals/'
-        drums_path = '../Processed/Drums/'
-        others_path = '../Processed/Others/'
-        phase_path = '../Processed/Phases/'
+        mixture_path = '../Test/Mixtures/'
+        bass_path = '../Test/Bass/'
+        vocals_path = '../Test/Vocals/'
+        drums_path = '../Test/Drums/'
+        others_path = '../Test/Others/'
+        phase_path = '../Test/Phases/'
 
         phase_file=self.list[index].replace('_m','_p')
         phase_file=phase_file.replace('.pt','.npy')

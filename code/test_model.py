@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import re
 import os
-from build_model import SepConvNet
+from build_model_old import SepConvNet
 from torch.utils.data import DataLoader
 from data_loader import SourceSepTest
 from post_processing import reconstruct
@@ -11,7 +11,7 @@ from train_model import TimeFreqMasking
 from tqdm import tqdm
 
 if __name__ == '__main__':
-    inp_size = [513,52]
+    inp_size = [513,862]
     t1=1
     f1=513#513
     t2=12
@@ -27,11 +27,26 @@ if __name__ == '__main__':
 
     destination_path= '../AudioResults/'
     phase_path = '../Processed/Phases/'
+    vocals_directory='../AudioResults/vocals'
+    drums_directory='../AudioResults/drums'
+    bass_directory='../AudioResults/bass'
+    others_directory='../AudioResults/others'
+
     if not os.path.exists(destination_path):
-    	os.makedirs(destination_path)
+        os.makedirs(destination_path)
+    if not os.path.exists(vocals_directory):
+        os.makedirs(vocals_directory)
+    if not os.path.exists(drums_directory):
+        os.makedirs(drums_directory)
+    if not os.path.exists(bass_directory):
+        os.makedirs(bass_directory)
+    if not os.path.exists(others_directory):
+        os.makedirs(others_directory)
+
 
     net = SepConvNet(t1,f1,t2,f2,N1,N2,inp_size,NN)
-    net.load_state_dict(torch.load('Weights/Weights_200_89410.71875.pth')) #least score Weights so far
+    # net.load_state_dict(torch.load('Weights/Weights_200_3722932.6015625.pth')) #least score Weights so far
+    net.load_state_dict(torch.load('Weights/Weights_250_1268044.8148148148.pth'))
     net.eval()
     test_set = SourceSepTest(transforms = None)
     test_loader = DataLoader(test_set, batch_size=batch_size,shuffle=False)

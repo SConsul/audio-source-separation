@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
-from build_model import *
+from build_model_old import *
 from cyclicAnnealing import CyclicLinearLR
 import os
 from tqdm import tqdm
@@ -35,7 +35,7 @@ class Average(object):
 writer = SummaryWriter()
 #----------------------------------------
 
-inp_size = [513,52]
+inp_size = [513,862]
 t1=1
 f1=513#513
 t2=12
@@ -45,9 +45,9 @@ N2=30
 NN=128
 alpha = 0.001
 beta = 0.01
-beta_vocals = 0.03
-batch_size = 10
-num_epochs = 200
+beta_vocals = 0.15
+batch_size = 30
+num_epochs = 300
 
 
 class MixedSquaredError(nn.Module):
@@ -67,10 +67,10 @@ class MixedSquaredError(nn.Module):
 
 def TimeFreqMasking(bass,vocals,drums,others):
     den = torch.abs(bass) + torch.abs(vocals) + torch.abs(drums) + torch.abs(others)
-    bass = bass/den
-    vocals = vocals/den
-    drums = drums/den
-    others = others/den
+    bass = torch.abs(bass)/den
+    vocals = torch.abs(vocals)/den
+    drums = torch.abs(drums)/den
+    others = torch.abs(others)/den
     return bass,vocals,drums,others
 #mu=torch.load(os.path.join(mean_var_path,'mean.pt'))
 #std=torch.load(os.path.join(mean_var_path,'std.pt'))
@@ -90,9 +90,10 @@ def train():
         net = net.cuda()
         criterion = criterion.cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
-    scheduler = CyclicLinearLR(optimizer, milestones=[60,120])
+    #scheduler = CyclicLinearLR(optimizer, milestones=[60,120])
+    scheduler = MultiStepLR(optimizer, milestones=[60,120])
     print("preparing training data ...")
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     print("done ...")
     val_set = SourceSepVal(transforms = None)
     val_loader = DataLoader(val_set, batch_size=batch_size,shuffle=False)
@@ -102,20 +103,24 @@ def train():
         train_loss = Average()
 
         net.train()
-        for i, (inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(train_loader)):
-            inp = Variable(inp)
+        for i, (inp, gt_bass,gt_vocals,gt_drums,gt_others) in enumerate(train_loader):
+            mean = torch.mean(inp)
+            std = torch.std(inp)
+            inp_n = (inp-mean)/std
+
+            inp_n = Variable(inp_n)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
             gt_others= Variable(gt_others)
             if cuda:
-                inp = inp.cuda()
+                inp_n = inp_n.cuda()
                 gt_bass = gt_bass.cuda()
                 gt_vocals = gt_vocals.cuda()
                 gt_drums = gt_drums.cuda()
                 gt_others= gt_others.cuda()
             optimizer.zero_grad()
-            o_bass, o_vocals, o_drums, o_others = net(inp)
+            o_bass, o_vocals, o_drums, o_others = net(inp_n)
 
 
             mask_bass,mask_vocals,mask_drums,mask_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
@@ -134,20 +139,24 @@ def train():
 
         val_loss = Average()
         net.eval()
-        for i,(val_inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(val_loader)):
-            val_inp = Variable(val_inp)
+        for i,(val_inp, gt_bass,gt_vocals,gt_drums,gt_others) in enumerate(val_loader):
+            val_mean = torch.mean(val_inp)
+            val_std = torch.std(val_inp)
+            val_inp_n = (val_inp-val_mean)/val_std
+
+            val_inp_n = Variable(val_inp_n)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
             gt_drums = Variable(gt_drums)
             gt_others = Variable(gt_others)
             if cuda:
-                val_inp = val_inp.cuda()
+                val_inp_n = val_inp_n.cuda()
                 gt_bass = gt_bass.cuda()
                 gt_vocals = gt_vocals.cuda()
                 gt_drums = gt_drums.cuda()
                 gt_others = gt_others.cuda()
 
-            o_bass, o_vocals, o_drums, o_others = net(val_inp)
+            o_bass, o_vocals, o_drums, o_others = net(val_inp_n)
             mask_bass,mask_vocals,mask_drums,mask_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
             #print(val_inp.shape)
             #print(mask_drums.shape)

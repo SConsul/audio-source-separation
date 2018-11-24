@@ -6,7 +6,7 @@ import torch
 import os
 import re
 
-path= "../DSD100subset/"
+path= "../dsd100/subset/"
 path_mixtures = path + "Mixtures/Dev/"
 path_sources = path + "Sources/Dev/"
 mean_var_path= "../Processed/"
@@ -47,11 +47,11 @@ def process(file_path,direc,destination_path,phase_bool,destination_phase_path):
 	index=regex.findall(direc)
 	#print(index)
 	num_segments=0
-	mean=np.zeros((513,52))
-	var=np.zeros((513,52))
-	for start in range(0,int(duration//0.3)):
+	mean=np.zeros((513,862))
+	var=np.zeros((513,862))
+	for start in range(0,int(duration//5)):
 
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*0.3,duration =0.3)
+		wave_array, fs = librosa.load(file_path,sr=None,offset=start*5,duration =5)
 
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
 		mean+=mag
@@ -75,10 +75,10 @@ def compute_var(mean,num_segments,file_path):
 	# regex = re.compile(r'\d+')
 	# index=regex.findall(direc)
 	#print(index)
-	var=np.zeros((513,52))
-	for start in range(0,int(duration//0.3)):
+	var=np.zeros((513,862))
+	for start in range(0,int(duration//5)):
 
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*0.3,duration =0.3)
+		wave_array, fs = librosa.load(file_path,sr=None,offset=start*5,duration =5)
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
 		#print(mag)
 		#print('################################')

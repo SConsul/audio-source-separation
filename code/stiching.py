@@ -4,7 +4,7 @@ import numpy as np
 import os
 import re
 import glob
-destination_path='../Recovered_Songs/'
+destination_path='../Recovered_Songs_same_genre/'
 vocals_directory='../AudioResults/vocals'
 drums_directory='../AudioResults/drums'
 bass_directory='../AudioResults/bass'
@@ -14,6 +14,14 @@ test_segment_length=[]
 vocals_list=[]
 if not os.path.exists(destination_path):
     os.makedirs(destination_path)
+if not os.path.exists(vocals_directory):
+    os.makedirs(vocals_directory)
+if not os.path.exists(drums_directory):
+    os.makedirs(drums_directory)
+if not os.path.exists(bass_directory):
+    os.makedirs(bass_directory)
+if not os.path.exists(others_directory):
+    os.makedirs(others_directory)
 for subdirs, dirs, files in os.walk(vocals_directory):
     print('finding list of songs ')
     for file in files :
@@ -37,7 +45,7 @@ for test_songs in (test_songs_list):
         combined_vocals= np.append(combined_vocals,seg)
     librosa.output.write_wav(sound_output_path,combined_vocals,sr)
 
-    
+
     print('Stitching Bass')
     combined_bass=np.array([])
     sr=None

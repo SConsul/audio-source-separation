@@ -11,7 +11,7 @@ from train_model import TimeFreqMasking
 from tqdm import tqdm
 
 if __name__ == '__main__':
-    inp_size = [513,345]
+    inp_size = [513,52]
     t1=1
     f1=513#513
     t2=12
@@ -26,14 +26,14 @@ if __name__ == '__main__':
     num_epochs = 30
 
     destination_path= '../AudioResults/'
-    phase_path = '../Test/Phases/'
+    phase_path = '../Processed/Phases/'
     if not os.path.exists(destination_path):
     	os.makedirs(destination_path)
 
     net = SepConvNet(t1,f1,t2,f2,N1,N2,inp_size,NN)
-    net.load_state_dict(torch.load('Weights/Weights_1_1348070.2777777778.pth')) #least score Weights so far
+    net.load_state_dict(torch.load('Weights/Weights_200_89410.71875.pth')) #least score Weights so far
     net.eval()
-    test_set = SourceSepTest()
+    test_set = SourceSepTest(transforms = None)
     test_loader = DataLoader(test_set, batch_size=batch_size,shuffle=False)
     for i,(test_inp,test_phase_file,file_str) in tqdm(enumerate(test_loader)):
         print('Testing, i='+str(i))

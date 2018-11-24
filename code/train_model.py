@@ -4,12 +4,13 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from build_model import *
+from cyclicAnnealing import CyclicLinearLR
 import os
 from tqdm import tqdm
 from data_loader import *
 from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import MultiStepLR
-
+mean_var_path= "../Processed/"
 if not os.path.exists('Weights'):
     os.makedirs('Weights')
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -34,7 +35,7 @@ class Average(object):
 writer = SummaryWriter()
 #----------------------------------------
 
-inp_size = [513,345]
+inp_size = [513,52]
 t1=1
 f1=513#513
 t2=12
@@ -46,7 +47,7 @@ alpha = 0.001
 beta = 0.01
 beta_vocals = 0.03
 batch_size = 10
-num_epochs = 80
+num_epochs = 200
 
 
 class MixedSquaredError(nn.Module):
@@ -71,11 +72,13 @@ def TimeFreqMasking(bass,vocals,drums,others):
     drums = drums/den
     others = others/den
     return bass,vocals,drums,others
+#mu=torch.load(os.path.join(mean_var_path,'mean.pt'))
+#std=torch.load(os.path.join(mean_var_path,'std.pt'))
+#transformations_train = transforms.Compose([transforms.Normalize(mean = mu, std = std)])
+#
+train_set = SourceSepTrain(transforms = None)
 
-train_set = SourceSepTrain(transforms = transformations_train)
 
-
-transformation_train = transforms.Compose([transforms.Normalize(mean = mu, std = std)])
 #transformation_test = transforms.Compose([ transforms.Normalize(mean = 0.0, std =1./var), transforms.Normalize(mean = -1*mu, std = 1.0),])
 
 
@@ -87,19 +90,19 @@ def train():
         net = net.cuda()
         criterion = criterion.cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
-
+    scheduler = CyclicLinearLR(optimizer, milestones=[60,120])
     print("preparing training data ...")
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=False)
     print("done ...")
-    val_set = SourceSepVal(transforms = transformations_train)
+    val_set = SourceSepVal(transforms = None)
     val_loader = DataLoader(val_set, batch_size=batch_size,shuffle=False)
 
     for epoch in range(num_epochs):
+        scheduler.step()
         train_loss = Average()
 
         net.train()
         for i, (inp, gt_bass,gt_drums,gt_vocals,gt_others) in tqdm(enumerate(train_loader)):
-            #print(inp.size())
             inp = Variable(inp)
             gt_bass = Variable(gt_bass)
             gt_vocals = Variable(gt_vocals)
@@ -114,7 +117,12 @@ def train():
             optimizer.zero_grad()
             o_bass, o_vocals, o_drums, o_others = net(inp)
 
-            pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
+
+            mask_bass,mask_vocals,mask_drums,mask_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
+            pred_drums=inp*mask_drums
+            pred_vocals=inp*mask_vocals
+            pred_bass=inp*mask_bass
+            pred_others=inp*mask_others
 
             loss = criterion(pred_bass,pred_vocals,pred_drums,pred_others, gt_bass,gt_vocals,gt_drums,gt_others)
             writer.add_scalar('Train Loss',loss,epoch)
@@ -140,9 +148,15 @@ def train():
                 gt_others = gt_others.cuda()
 
             o_bass, o_vocals, o_drums, o_others = net(val_inp)
-            pred_bass,pred_vocals,pred_drums,pred_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
+            mask_bass,mask_vocals,mask_drums,mask_others = TimeFreqMasking(o_bass, o_vocals, o_drums, o_others)
+            #print(val_inp.shape)
+            #print(mask_drums.shape)
+            #assert False
+            pred_drums=val_inp*mask_drums
+            pred_vocals=val_inp*mask_vocals
+            pred_bass=val_inp*mask_bass
+            pred_others=val_inp*mask_others
 
-            pred_bass = std*pred_bass + mu;
             if (epoch)%10==0:
                 writer.add_image('Validation Input',val_inp,epoch)
                 writer.add_image('Validation Bass GT ',gt_bass,epoch)

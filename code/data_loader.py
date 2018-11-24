@@ -26,9 +26,10 @@ class SourceSepTrain(Dataset):
         vocals = torch.load(vocals_path+self.list[index])
         drums = torch.load(drums_path+self.list[index])
         others = torch.load(others_path+self.list[index])
-
+        #print(mixture)
         if self.transforms is not None:
             mixture = self.transforms(mixture)
+
             bass = self.transforms(bass)
             vocals = self.transforms(vocals)
             drums = self.transforms(drums)
@@ -70,22 +71,24 @@ class SourceSepVal(Dataset):
             others = self.transforms(others)
 
         return (mixture,bass, vocals, drums, others)
+    def __len__(self):
+        return len(self.list)
 
-    class SourceSepTest(Dataset):
-        def __init__(self, path='../Test/Mixtures',transforms=None):
-            # assuming this to be the directory containing all the magnitude spectrum
-            #for all songs and all segments used in training
-            self.path = path
-            self.list = os.listdir(self.path)
-            self.transforms = transforms
+class SourceSepTest(Dataset):
+    def __init__(self, path='../Processed/Mixtures',transforms=None):
+        # assuming this to be the directory containing all the magnitude spectrum
+        #for all songs and all segments used in training
+        self.path = path
+        self.list = os.listdir(self.path)
+        self.transforms = transforms
 
-        def __getitem__(self, index):
-            mixture_path = '../Test/Mixtures/'
-            bass_path = '../Test/Bass/'
-            vocals_path = '../Test/Vocals/'
-            drums_path = '../Test/Drums/'
-            others_path = '../Test/Others/'
-            phase_path = '../Test/Phases/'
+    def __getitem__(self, index):
+        mixture_path = '../Processed/Mixtures/'
+        bass_path = '../Processed/Bass/'
+        vocals_path = '../Processed/Vocals/'
+        drums_path = '../Processed/Drums/'
+        others_path = '../Processed/Others/'
+        phase_path = '../Processed/Phases/'
 
         phase_file=self.list[index].replace('_m','_p')
         phase_file=phase_file.replace('.pt','.npy')
@@ -96,14 +99,15 @@ class SourceSepVal(Dataset):
         drums = torch.load(drums_path+self.list[index])
         others = torch.load(others_path+self.list[index])
 
-            if self.transforms is not None:
-                mixture = self.transforms(mixture)
-                bass = self.transforms(bass)
-                vocals = self.transforms(vocals)
-                drums = self.transforms(drums)
-                others = self.transforms(others)
+        if self.transforms is not None:
+            mixture = self.transforms(mixture)
+            bass = self.transforms(bass)
+            vocals = self.transforms(vocals)
+            drums = self.transforms(drums)
+            others = self.transforms(others)
 
-            return (mixture,phase, bass, vocals, drums, others)
+        return (mixture,phase_file,self.list[index])
+
 
     def __len__(self):
         return len(self.list)

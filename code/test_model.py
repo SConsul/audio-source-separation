@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import re
 import os
-from build_model_old import SepConvNet
+from build_model import SepConvNet
 from torch.utils.data import DataLoader
 from data_loader import SourceSepTest
 from post_processing import reconstruct
@@ -14,7 +14,7 @@ if __name__ == '__main__':
     inp_size = [513,52]
     t1=1
     f1=513#513
-    t2=12
+    t2=15
     f2=1
     N1=50
     N2=30
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     net = SepConvNet(t1,f1,t2,f2,N1,N2,inp_size,NN)
     # net.load_state_dict(torch.load('Weights/Weights_200_3722932.6015625.pth')) #least score Weights so far
-    net.load_state_dict(torch.load('Weights/Weights_19_25443.02980872845.pth'))
+    net.load_state_dict(torch.load('Weights/Weights_97_39969.63211206897.pth'))
     net.eval()
     test_set = SourceSepTest(transforms = None)
     test_loader = DataLoader(test_set, batch_size=batch_size,shuffle=False)
@@ -55,6 +55,11 @@ if __name__ == '__main__':
         test_phase = np.load(phase_path+test_phase_file[0])
         bass_mag, vocals_mag, drums_mag,others_mag = net(test_inp)
         bass_mag, vocals_mag, drums_mag,others_mag = TimeFreqMasking(bass_mag, vocals_mag, drums_mag,others_mag)
+        bass_mag = bass_mag*test_inp
+        vocals_mag = vocals_mag*test_inp
+        drums_mag = drums_mag*test_inp
+        others_mag = others_mag*test_inp
+        
         regex = re.compile(r'\d+')
         index=regex.findall(file_str[0])
         reconstruct(test_phase, bass_mag, vocals_mag, drums_mag,others_mag,index[0],index[1],destination_path)

@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     net = SepConvNet(t1,f1,t2,f2,N1,N2,inp_size,NN)
     # net.load_state_dict(torch.load('Weights/Weights_200_3722932.6015625.pth')) #least score Weights so far
-    net.load_state_dict(torch.load('Weights/Weights_50_17578.786961206897.pth'))
+    net.load_state_dict(torch.load('Weights/Weights_19_25443.02980872845.pth'))
     net.eval()
     test_set = SourceSepTest(transforms = None)
     test_loader = DataLoader(test_set, batch_size=batch_size,shuffle=False)

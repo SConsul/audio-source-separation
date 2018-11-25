@@ -189,7 +189,7 @@ def train():
             pred_bass = val_inp*mask_bass
             pred_others = val_inp*mask_others
 
-            if (epoch) % 10 == 0:
+            if (epoch) % 5 == 0:
                 writer.add_image('Validation Input', val_inp, epoch)
                 writer.add_image('Validation Bass GT ', gt_bass, epoch)
                 writer.add_image('Validation Bass Pred ', pred_bass, epoch)

@@ -4,7 +4,7 @@ import numpy as np
 import os
 import re
 import glob
-destination_path='../Recovered_Songs_bigger5/'
+destination_path='../Recovered_Songs_bigger6/'
 vocals_directory='../AudioResults/vocals'
 drums_directory='../AudioResults/drums'
 bass_directory='../AudioResults/bass'
@@ -39,9 +39,10 @@ for test_songs in (test_songs_list):
     vocals_path=os.path.join(destination_path,'vocals')
     if not os.path.exists(vocals_path):
         os.makedirs(vocals_path)
-    sound_output_path = os.path.join(vocals_path,test_songs)
+    sound_output_path = os.path.join(vocals_path,test_songs + '.wav')
     for segment in (vocals_list) :
         seg, sr = librosa.load(segment)
+        print(sr)
         combined_vocals= np.append(combined_vocals,seg)
     librosa.output.write_wav(sound_output_path,combined_vocals,sr)
 
@@ -53,7 +54,7 @@ for test_songs in (test_songs_list):
     bass_path=os.path.join(destination_path,'bass')
     if not os.path.exists(bass_path):
         os.makedirs(bass_path)
-    sound_output_path = os.path.join(bass_path,test_songs)
+    sound_output_path = os.path.join(bass_path,test_songs + '.wav')
     for segment in (bass_list) :
         seg, sr = librosa.load(segment)
         combined_bass= np.append(combined_bass,seg)
@@ -67,7 +68,7 @@ for test_songs in (test_songs_list):
     drums_path=os.path.join(destination_path,'drums')
     if not os.path.exists(drums_path):
         os.makedirs(drums_path)
-    sound_output_path = os.path.join(drums_path,test_songs)
+    sound_output_path = os.path.join(drums_path,test_songs + '.wav')
     for segment in (drums_list) :
         seg, sr = librosa.load(segment)
         combined_drums= np.append(combined_drums,seg)
@@ -80,7 +81,7 @@ for test_songs in (test_songs_list):
     others_path=os.path.join(destination_path,'others')
     if not os.path.exists(others_path):
         os.makedirs(others_path)
-    sound_output_path = os.path.join(others_path,test_songs)
+    sound_output_path = os.path.join(others_path,test_songs + '.wav')
     for segment in (others_list) :
         seg, sr = librosa.load(segment)
         combined_others= np.append(combined_others,seg)

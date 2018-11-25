@@ -13,11 +13,14 @@ for subdirs, dirs, files in os.walk(bass_path):
     num=0
     for song in files:
         temp,_ = librosa.load(os.path.join(vocals_path,song))
+        #print(temp)
         mean+= temp
         num+=1
     mean/=num
+    #print(mean)
     for song in files:
         temp,sr = librosa.load(os.path.join(vocals_path,song))
+        #print(os.path.join(vocals_path,song))
         temp-=mean
         out_bass_path=os.path.join(destination_path,'bass')
         print(song)

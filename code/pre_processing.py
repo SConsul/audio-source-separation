@@ -51,7 +51,7 @@ def process(file_path,direc,destination_path,phase_bool,destination_phase_path):
 	#var=np.zeros((513,52))
 	for start in range(30,int(200)):
 
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*0.3,duration = 0.3)
+		wave_array, fs = librosa.load(file_path,sr=44100,offset=start*0.3,duration = 0.3)
 
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
 		#mean+=mag

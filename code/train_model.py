@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
-from build_model import *
+from build_model_original import *
 # from build_model_old import *
 # from cyclicAnnealing import CyclicLinearLR
 import os
@@ -65,7 +65,6 @@ class MixedSquaredError(nn.Module):
         L_othervocals = torch.sum((pred_vocals - gt_others).pow(2))
         L_diff = torch.sum((pred_bass-pred_vocals).pow(2)) + torch.sum((pred_bass-pred_drums).pow(2)) + torch.sum((pred_vocals-pred_drums).pow(2))
 
-#         return (L_sq- alpha*L_diff - beta*L_other - beta_vocals*L_othervocals)
         return (L_sq- alpha*L_diff - beta*L_other - beta_vocals*L_othervocals)
 
 def TimeFreqMasking(bass,vocals,drums,others,cuda=0):

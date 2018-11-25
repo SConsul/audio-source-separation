@@ -34,9 +34,9 @@ class SepConvNet(nn.Module):
         x = F.relu(self.fc0(x))
 
         x1 = F.relu(self.fc1(x))
-        x2 = F.relu(self.fc1(x))
-        x3 = F.relu(self.fc1(x))
-        x4 = F.relu(self.fc1(x))
+        x2 = F.relu(self.fc2(x))
+        x3 = F.relu(self.fc3(x))
+        x4 = F.relu(self.fc4(x))
 
         x1 = x1.view(s1[0], s1[1],s1[2],s1[3])
         x2 = x2.view(s1[0], s1[1],s1[2],s1[3])

@@ -71,7 +71,7 @@ class MixedSquaredError(nn.Module):
                                                                         pred_drums).pow(2)) + torch.sum((pred_vocals-pred_drums).pow(2))
 
 #         return (L_sq- alpha*L_diff - beta*L_other - beta_vocals*L_othervocals)
-        return torch.abs(L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals)
+        return L_sq - alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
 
 
 def TimeFreqMasking(bass, vocals, drums, others, cuda=0):

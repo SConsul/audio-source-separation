@@ -35,7 +35,7 @@ class Average(object):
 writer = SummaryWriter()
 #----------------------------------------
 
-inp_size = [513,862]
+inp_size = [513,52]
 t1=1
 f1=513#513
 t2=12
@@ -43,9 +43,9 @@ f2=1
 N1=50
 N2=30
 NN=128
-alpha = 0.001
-beta = 0.01
-beta_vocals = 0.15
+alpha = 0.003
+beta = 0.03
+beta_vocals = 0.09
 batch_size = 30
 num_epochs = 100
 
@@ -58,10 +58,10 @@ class MixedSquaredError(nn.Module):
 
 
         L_sq = torch.sum((pred_bass-gt_bass).pow(2)) + torch.sum((pred_vocals-gt_vocals).pow(2)) + torch.sum((pred_drums-gt_drums).pow(2))
-        L_other = torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2))
+        L_other = 2*torch.sum((pred_bass-gt_others).pow(2)) + torch.sum((pred_drums-gt_others).pow(2))
         #+ torch.sum((pred_vocals-gt_others).pow(2))
         L_othervocals = torch.sum((pred_vocals - gt_others).pow(2))
-        L_diff = torch.sum((pred_bass-pred_vocals).pow(2)) + torch.sum((pred_bass-pred_drums).pow(2)) + torch.sum((pred_vocals-pred_drums).pow(2))
+        L_diff = torch.sum((pred_bass-pred_vocals).pow(2)) + torch.sum((pred_bass-pred_drums).pow(2)) + 15*torch.sum((pred_vocals-pred_drums).pow(2))
 
         return L_sq- alpha*L_diff - beta*L_other - beta_vocals*L_othervocals
 

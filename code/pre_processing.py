@@ -49,13 +49,13 @@ def process(file_path,direc,destination_path,phase_bool,destination_phase_path):
 	num_segments=0
 	#mean=np.zeros((513,52))
 	#var=np.zeros((513,52))
-	for start in range(0,int(duration//0.3)):
+	for start in range(30,int(200)):
 
-		wave_array, fs = librosa.load(file_path,sr=None,offset=start*0.3,duration =0.3)
+		wave_array, fs = librosa.load(file_path,sr=None,offset=start*0.3,duration = 0.3)
 
 		mag, phase = librosa.magphase(librosa.stft(wave_array, n_fft=1024,hop_length=256,window='hann',center='True'))
-		mean+=mag
-		num_segments+=1;
+		#mean+=mag
+		#num_segments+=1;
 		if not os.path.exists(destination_path):
 			os.makedirs(destination_path)
 		#print(mag.shape)
@@ -106,7 +106,7 @@ for subdirs, dirs, files in os.walk(path_val_mixtures):
 		print('working with validation '+ direc)
 		for s,d,f in os.walk(path_val_mixtures + direc):
 
-			process(os.path.join(path_val_mixtures,direc,f[0]),direc,validation_path,False,val_phase_path)
+			process(os.path.join(path_val_mixtures,direc,f[0]),direc,validation_path,True,val_phase_path)
 
 for subdirs, dirs, files in os.walk(path_val_sources):
 	for direc in dirs:
@@ -118,17 +118,17 @@ for subdirs, dirs, files in os.walk(path_val_sources):
 
 #----------------------Testing data-------------------------------------------
 
-for subdirs, dirs, files in os.walk(path_test_mixtures):
-	for direc in dirs:
-		print('working with validation '+ direc)
-		for s,d,f in os.walk(path_test_mixtures + direc):
-
-			process(os.path.join(path_test_mixtures,direc,f[0]),direc,testing_path,True,test_phase_path)
-
-for subdirs, dirs, files in os.walk(path_test_sources):
-	for direc in dirs:
-		print('source with testset '+ direc)
-		for s,d,file in os.walk(path_test_sources + direc):
-			for i in range(0,4):
-				print(file[i])
-				process(os.path.join(path_test_sources,direc,file[i]),direc,source_test_paths[i],False,test_phase_path)
+#for subdirs, dirs, files in os.walk(path_test_mixtures):
+#	for direc in dirs:
+#		print('working with validation '+ direc)
+#		for s,d,f in os.walk(path_test_mixtures + direc):
+#
+#			process(os.path.join(path_test_mixtures,direc,f[0]),direc,testing_path,True,test_phase_path)
+#
+#for subdirs, dirs, files in os.walk(path_test_sources):
+#	for direc in dirs:
+#		print('source with testset '+ direc)
+#		for s,d,file in os.walk(path_test_sources + direc):
+#			for i in range(0,4):
+#				print(file[i])
+#				process(os.path.join(path_test_sources,direc,file[i]),direc,source_test_paths[i],False,test_phase_path)

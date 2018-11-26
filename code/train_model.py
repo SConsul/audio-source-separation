@@ -45,11 +45,11 @@ f2=1
 N1=50
 N2=30
 NN=128
-alpha = 0.001
-beta = 0.01
-beta_vocals = 0.03
+alpha = 0.005
+beta = 0.05
+beta_vocals = 0.08
 batch_size = 30
-num_epochs = 100
+num_epochs = 50
 
 
 class MixedSquaredError(nn.Module):

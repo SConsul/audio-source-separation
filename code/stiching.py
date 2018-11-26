@@ -42,7 +42,7 @@ for test_songs in (test_songs_list):
         os.makedirs(vocals_path)
     sound_output_path = os.path.join(vocals_path,test_songs+'.wav')
     for segment in (vocals_list) :
-        seg, sr = librosa.load(segment)
+        seg, sr = librosa.load(segment, sr=44100)
         print(sr)
         assert sr==44100
         combined_vocals= np.append(combined_vocals,seg)
@@ -58,7 +58,8 @@ for test_songs in (test_songs_list):
         os.makedirs(bass_path)
     sound_output_path = os.path.join(bass_path,test_songs+'.wav')
     for segment in (bass_list) :
-        seg, sr = librosa.load(segment)
+        seg, sr = librosa.load(segment,sr=44100)
+        assert sr==44100
         combined_bass= np.append(combined_bass,seg)
     librosa.output.write_wav(sound_output_path,combined_bass,sr)
 
@@ -72,7 +73,7 @@ for test_songs in (test_songs_list):
         os.makedirs(drums_path)
     sound_output_path = os.path.join(drums_path,test_songs+'.wav')
     for segment in (drums_list) :
-        seg, sr = librosa.load(segment)
+        seg, sr = librosa.load(segment,sr=44100)
         combined_drums= np.append(combined_drums,seg)
     librosa.output.write_wav(sound_output_path,combined_drums,sr)
 
@@ -85,6 +86,6 @@ for test_songs in (test_songs_list):
         os.makedirs(others_path)
     sound_output_path = os.path.join(others_path,test_songs+'.wav')
     for segment in (others_list) :
-        seg, sr = librosa.load(segment)
+        seg, sr = librosa.load(segment,sr=44100)
         combined_others= np.append(combined_others,seg)
     librosa.output.write_wav(sound_output_path,combined_others,sr)
